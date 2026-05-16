@@ -6,24 +6,12 @@ import { authApi } from '@/api/index.js'
 import router from '@/router/index.js'
 
 export const useAuthStore = defineStore('auth', () => {
-  // ─────────────────────────────────────────────
-  // State
-  // ─────────────────────────────────────────────
-
   const user = ref(JSON.parse(localStorage.getItem('user')) || null)
   const token = ref(localStorage.getItem('token') || null)
   const loading = ref(false)
   const error = ref(null)
 
-  // ─────────────────────────────────────────────
-  // Getters
-  // ─────────────────────────────────────────────
-
   const isAuthenticated = computed(() => !!token.value)
-
-  // ─────────────────────────────────────────────
-  // Actions
-  // ─────────────────────────────────────────────
 
   async function register(data) {
     loading.value = true
@@ -61,16 +49,12 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       await authApi.logout()
     } catch {
-      // Silently fail — still clear local state
+      // Silently fail
     } finally {
       clearAuth()
       router.push({ name: 'login' })
     }
   }
-
-  // ─────────────────────────────────────────────
-  // Helpers
-  // ─────────────────────────────────────────────
 
   function setAuth({ user: userData, token: tokenData }) {
     user.value = userData

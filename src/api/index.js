@@ -20,13 +20,14 @@ api.interceptors.request.use((config) => {
 })
 
 // Handle 401 responses globally — redirect to login
+// Skip auth endpoints since 401 there means wrong credentials not expired session
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const isAuthEndpoint = error.config?.url?.includes('/api/auth/')
+    if (error.response?.status === 401 && !isAuthEndpoint) {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
-      window.location.href = '/login'
     }
     return Promise.reject(error)
   },

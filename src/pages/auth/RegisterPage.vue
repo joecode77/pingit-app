@@ -1,1 +1,285 @@
-<template><div>Register</div></template>
+<script setup>
+import { ref, computed } from 'vue'
+import { useAuthStore } from '@/stores/auth.js'
+
+const auth = useAuthStore()
+
+const form = ref({
+  name: '',
+  email: '',
+  password: '',
+  password_confirmation: '',
+})
+
+const errors = ref({})
+const generalError = ref(null)
+const isLoading = computed(() => auth.loading)
+const showPassword = ref(false)
+const showConfirmPassword = ref(false)
+
+async function handleRegister() {
+  errors.value = {}
+  generalError.value = null
+
+  try {
+    await auth.register(form.value)
+  } catch (err) {
+    if (err.response?.status === 422) {
+      errors.value = err.response.data.errors || {}
+    } else {
+      generalError.value = err.response?.data?.message || 'Something went wrong. Please try again.'
+    }
+  }
+}
+</script>
+
+<template>
+  <div class="min-h-screen flex">
+    <!-- Left Panel — Illustration -->
+    <div
+      class="hidden lg:flex lg:w-1/2 flex-col relative overflow-hidden"
+      style="background-color: #ecf2ff"
+    >
+      <div class="absolute top-8 left-8 z-10">
+        <img src="/images/logo-dark.png" alt="Pingit" class="h-8" />
+      </div>
+
+      <div class="flex-1 flex items-center justify-center p-16">
+        <img src="/images/auth-illustration.svg" alt="" class="w-full max-w-lg" />
+      </div>
+    </div>
+
+    <!-- Right Panel — Form -->
+    <div class="w-full lg:w-1/2 flex items-center justify-center bg-white p-12">
+      <div class="w-full max-w-md">
+        <!-- Mobile Logo -->
+        <div class="mb-6 lg:hidden">
+          <img src="/images/logo-dark.png" alt="Pingit" class="h-8" />
+        </div>
+
+        <!-- Heading -->
+        <h2 class="text-2xl font-bold mb-1" style="color: #1f2a3d">Create an account</h2>
+        <p class="text-sm mb-6" style="color: rgba(0, 0, 0, 0.87)">
+          Start monitoring your sites for free
+        </p>
+
+        <!-- Error -->
+        <div
+          v-if="generalError"
+          class="mb-5 p-3 rounded-lg text-sm flex items-center gap-2"
+          style="background-color: #fff0f3; color: #fa5a7d; border: 1px solid #ffcdd9"
+        >
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          {{ generalError }}
+        </div>
+
+        <form @submit.prevent="handleRegister" novalidate>
+          <!-- Name -->
+          <div class="mb-5">
+            <label class="block text-sm font-semibold mb-2" style="color: #2a3547">
+              Full Name
+            </label>
+            <input
+              v-model="form.name"
+              type="text"
+              placeholder="John Doe"
+              autocomplete="name"
+              class="auth-input w-full px-4 py-3 rounded-lg text-sm outline-none transition-all"
+              :class="errors.name ? 'input-error' : ''"
+            />
+            <p v-if="errors.name" class="mt-1 text-xs" style="color: #fa5a7d">
+              {{ errors.name[0] }}
+            </p>
+          </div>
+
+          <!-- Email -->
+          <div class="mb-5">
+            <label class="block text-sm font-semibold mb-2" style="color: #2a3547">
+              Email Address
+            </label>
+            <input
+              v-model="form.email"
+              type="email"
+              placeholder="john@example.com"
+              autocomplete="email"
+              class="auth-input w-full px-4 py-3 rounded-lg text-sm outline-none transition-all"
+              :class="errors.email ? 'input-error' : ''"
+            />
+            <p v-if="errors.email" class="mt-1 text-xs" style="color: #fa5a7d">
+              {{ errors.email[0] }}
+            </p>
+          </div>
+
+          <!-- Password -->
+          <div class="mb-5">
+            <label class="block text-sm font-semibold mb-2" style="color: #2a3547">
+              Password
+            </label>
+            <div class="relative">
+              <input
+                v-model="form.password"
+                :type="showPassword ? 'text' : 'password'"
+                placeholder="Min. 8 characters"
+                autocomplete="new-password"
+                class="auth-input w-full px-4 py-3 rounded-lg text-sm outline-none transition-all pr-11"
+                :class="errors.password ? 'input-error' : ''"
+              />
+              <button
+                type="button"
+                class="absolute right-3 top-1/2 -translate-y-1/2 p-1"
+                style="color: #98a4ae"
+                @click="showPassword = !showPassword"
+              >
+                <svg
+                  v-if="!showPassword"
+                  width="17"
+                  height="17"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                <svg
+                  v-else
+                  width="17"
+                  height="17"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                  />
+                  <line x1="1" y1="1" x2="23" y2="23" />
+                </svg>
+              </button>
+            </div>
+            <p v-if="errors.password" class="mt-1 text-xs" style="color: #fa5a7d">
+              {{ errors.password[0] }}
+            </p>
+          </div>
+
+          <!-- Confirm Password -->
+          <div class="mb-6">
+            <label class="block text-sm font-semibold mb-2" style="color: #2a3547">
+              Confirm Password
+            </label>
+            <div class="relative">
+              <input
+                v-model="form.password_confirmation"
+                :type="showConfirmPassword ? 'text' : 'password'"
+                placeholder="Repeat your password"
+                autocomplete="new-password"
+                class="auth-input w-full px-4 py-3 rounded-lg text-sm outline-none transition-all pr-11"
+              />
+              <button
+                type="button"
+                class="absolute right-3 top-1/2 -translate-y-1/2 p-1"
+                style="color: #98a4ae"
+                @click="showConfirmPassword = !showConfirmPassword"
+              >
+                <svg
+                  v-if="!showConfirmPassword"
+                  width="17"
+                  height="17"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                <svg
+                  v-else
+                  width="17"
+                  height="17"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                  />
+                  <line x1="1" y1="1" x2="23" y2="23" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Submit -->
+          <button
+            type="submit"
+            :disabled="isLoading"
+            class="w-full py-3 rounded-lg text-sm font-semibold text-white transition-all"
+            style="background-color: #635bff"
+            :class="isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:opacity-90'"
+          >
+            <span v-if="isLoading" class="flex items-center justify-center gap-2">
+              <svg
+                class="animate-spin"
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+              </svg>
+              Creating account...
+            </span>
+            <span v-else>Create Account</span>
+          </button>
+        </form>
+
+        <h6
+          class="flex items-center gap-1 mt-6 text-sm font-medium"
+          style="color: rgba(0, 0, 0, 0.87)"
+        >
+          Already have an account?
+          <RouterLink to="/login" class="font-medium pl-1" style="color: #635bff">
+            Sign in
+          </RouterLink>
+        </h6>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.auth-input {
+  background: transparent;
+  border: 1px solid #e5eaef;
+  color: #1f2a3d;
+}
+
+.auth-input:focus {
+  border-color: #635bff;
+  border-width: 2px;
+}
+
+.auth-input::placeholder {
+  color: #adbcc8;
+}
+
+.input-error {
+  border-color: #fa5a7d;
+}
+</style>
