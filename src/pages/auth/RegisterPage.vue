@@ -228,7 +228,7 @@ async function handleRegister() {
             type="submit"
             :disabled="isLoading"
             class="w-full py-3 rounded-lg text-sm font-semibold text-white transition-all"
-            style="background-color: #635bff"
+            style="background-color: #5d87ff"
             :class="isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:opacity-90'"
           >
             <span v-if="isLoading" class="flex items-center justify-center gap-2">
@@ -254,7 +254,7 @@ async function handleRegister() {
           style="color: rgba(0, 0, 0, 0.87)"
         >
           Already have an account?
-          <RouterLink to="/login" class="font-medium pl-1" style="color: #635bff">
+          <RouterLink to="/login" class="font-medium pl-1" style="color: #5d87ff">
             Sign in
           </RouterLink>
         </h6>
@@ -271,7 +271,7 @@ async function handleRegister() {
 }
 
 .auth-input:focus {
-  border-color: #635bff;
+  border-color: #5d87ff;
   border-width: 2px;
 }
 

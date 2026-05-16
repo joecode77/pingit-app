@@ -44,6 +44,16 @@ const router = createRouter({
           name: 'monitor-detail',
           component: () => import('@/pages/MonitorDetailPage.vue'),
         },
+        {
+          path: 'channels',
+          name: 'channels',
+          component: () => import('@/pages/ChannelsPage.vue'),
+        },
+        {
+          path: 'tags',
+          name: 'tags',
+          component: () => import('@/pages/TagsPage.vue'),
+        },
       ],
     },
 

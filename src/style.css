@@ -6,7 +6,7 @@
   --font-sans: 'Plus Jakarta Sans', sans-serif;
 
   /* Brand */
-  --color-primary: #635bff;
+  --color-primary: #5d87ff;
   --color-primary-light: #eef0ff;
   --color-primary-dark: #4a43cc;
 
@@ -15,7 +15,7 @@
   --color-down: #fa5a7d;
   --color-degraded: #ff9f43;
   --color-paused: #98a4ae;
-  --color-pending: #635bff;
+  --color-pending: #5d87ff;
 
   /* Text */
   --color-text-primary: #1f2a3d;

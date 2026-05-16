@@ -164,11 +164,11 @@ async function handleLogin() {
               <input
                 v-model="form.remember"
                 type="checkbox"
-                style="accent-color: #635bff; width: 16px; height: 16px"
+                style="accent-color: #5d87ff; width: 16px; height: 16px"
               />
               <span class="text-sm" style="color: rgba(0, 0, 0, 0.87)">Remember this Device</span>
             </label>
-            <a href="#" class="text-sm font-medium" style="color: #635bff"> Forgot Password? </a>
+            <a href="#" class="text-sm font-medium" style="color: #5d87ff"> Forgot Password? </a>
           </div>
 
           <!-- Submit -->
@@ -176,7 +176,7 @@ async function handleLogin() {
             type="submit"
             :disabled="isLoading"
             class="w-full py-3 rounded-lg text-sm font-semibold text-white transition-all"
-            style="background-color: #635bff"
+            style="background-color: #5d87ff"
             :class="isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:opacity-90'"
           >
             <span v-if="isLoading" class="flex items-center justify-center gap-2">
@@ -203,7 +203,7 @@ async function handleLogin() {
           style="color: rgba(0, 0, 0, 0.87)"
         >
           New to Pingit?
-          <RouterLink to="/register" class="font-medium pl-1" style="color: #635bff">
+          <RouterLink to="/register" class="font-medium pl-1" style="color: #5d87ff">
             Create an account
           </RouterLink>
         </h6>
@@ -220,7 +220,7 @@ async function handleLogin() {
 }
 
 .auth-input:focus {
-  border-color: #635bff;
+  border-color: #5d87ff;
   border-width: 2px;
 }
 
