@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useMonitorsStore } from '@/stores/monitors.js'
 import { useAuthStore } from '@/stores/auth.js'
 import VueApexCharts from 'vue3-apexcharts'
@@ -182,6 +182,10 @@ const responseTimePeriod = ref('7d')
 const responseTimeData = ref([])
 const responseTimeLoading = ref(false)
 
+watch(responseTimePeriod, () => {
+  fetchResponseTimes()
+})
+
 async function fetchResponseTimes() {
   if (!monitors.value.length) return
   responseTimeLoading.value = true
@@ -190,70 +194,72 @@ async function fetchResponseTimes() {
     .filter((m) => m.status !== 'pending' && m.last_checked_at)
     .slice(0, 8)
 
-  // Fetch enough records to cover the period
-  // 5min interval = 288/day, 10min = 144/day — use 400 for 24h, 100 max per_page so paginate
-  const perPage =
-    responseTimePeriod.value === '24h' ? 100 : responseTimePeriod.value === '7d' ? 100 : 100
-
-  const allChecks = []
-  await Promise.all(
-    activeMonitors.map(async (m) => {
-      try {
-        // Fetch up to 3 pages to get enough coverage
-        const pages =
-          responseTimePeriod.value === '24h' ? 1 : responseTimePeriod.value === '7d' ? 3 : 7
-
-        for (let page = 1; page <= pages; page++) {
-          const res = await monitorsApi.history(m.id, { per_page: perPage, page })
+  if (responseTimePeriod.value === '24h') {
+    // Raw history bucketed by hour for sub-daily granularity
+    const allChecks = []
+    await Promise.all(
+      activeMonitors.map(async (m) => {
+        try {
+          const res = await monitorsApi.history(m.id, { per_page: 100 })
           const checks = res.data.data.filter((c) => c.is_up && c.response_time_ms)
           allChecks.push(...checks)
-          // Stop early if we got fewer results than requested (last page)
-          if (res.data.data.length < perPage) break
+        } catch {
+          // skip
         }
-      } catch {
-        // skip
-      }
-    }),
-  )
+      }),
+    )
+    // Bucket by hour
+    const cutoff = Date.now() - 24 * 3600 * 1000
+    const bucketMs = 3600 * 1000
+    const buckets = {}
+    allChecks
+      .filter((c) => new Date(c.checked_at).getTime() >= cutoff)
+      .forEach((c) => {
+        const t = new Date(c.checked_at).getTime()
+        const bucket = Math.floor(t / bucketMs) * bucketMs
+        if (!buckets[bucket]) buckets[bucket] = []
+        buckets[bucket].push(c.response_time_ms)
+      })
+    const data = Object.entries(buckets)
+      .map(([time, values]) => ({
+        x: parseInt(time) + bucketMs / 2,
+        y: Math.round(values.reduce((a, b) => a + b, 0) / values.length),
+      }))
+      .sort((a, b) => a.x - b.x)
+    responseTimeData.value = data.length ? [{ name: 'Avg Response Time', data }] : []
+  } else {
+    // Daily stats for 7d / 30d
+    const days = responseTimePeriod.value === '7d' ? 7 : 30
+    const allDailyStats = []
+    await Promise.all(
+      activeMonitors.map(async (m) => {
+        try {
+          const res = await monitorsApi.dailyStats(m.id, days)
+          allDailyStats.push(...res.data.data)
+        } catch {
+          // skip
+        }
+      }),
+    )
+    const byDate = {}
+    allDailyStats.forEach((d) => {
+      if (d.avg_response_ms === null) return
+      if (!byDate[d.date]) byDate[d.date] = []
+      byDate[d.date].push(d.avg_response_ms)
+    })
+    const data = Object.entries(byDate)
+      .map(([date, values]) => ({
+        x: new Date(`${date}T12:00:00`).getTime(),
+        y: Math.round(values.reduce((a, b) => a + b, 0) / values.length),
+      }))
+      .sort((a, b) => a.x - b.x)
+    responseTimeData.value = data.length ? [{ name: 'Avg Response Time', data }] : []
+  }
 
-  responseTimeData.value = allChecks
   responseTimeLoading.value = false
 }
 
-const responseTimeSeries = computed(() => {
-  const periodHours =
-    responseTimePeriod.value === '24h' ? 24 : responseTimePeriod.value === '7d' ? 168 : 720
-
-  const cutoff = Date.now() - periodHours * 3600 * 1000
-  const bucketMs =
-    responseTimePeriod.value === '24h'
-      ? 60 * 60 * 1000 // 1 hour buckets
-      : responseTimePeriod.value === '7d'
-        ? 6 * 60 * 60 * 1000 // 6 hour buckets
-        : 24 * 60 * 60 * 1000 // 1 day buckets
-
-  const filtered = responseTimeData.value.filter((c) => new Date(c.checked_at).getTime() >= cutoff)
-
-  if (!filtered.length) return []
-
-  // Group into time buckets and average
-  const buckets = {}
-  filtered.forEach((c) => {
-    const t = new Date(c.checked_at).getTime()
-    const bucket = Math.floor(t / bucketMs) * bucketMs
-    if (!buckets[bucket]) buckets[bucket] = []
-    buckets[bucket].push(c.response_time_ms)
-  })
-
-  const data = Object.entries(buckets)
-    .map(([time, values]) => ({
-      x: parseInt(time),
-      y: Math.round(values.reduce((a, b) => a + b, 0) / values.length),
-    }))
-    .sort((a, b) => a.x - b.x)
-
-  return [{ name: 'Avg Response Time', data }]
-})
+const responseTimeSeries = computed(() => responseTimeData.value)
 
 const responseTimeOptions = computed(() => ({
   chart: {
@@ -284,7 +290,7 @@ const responseTimeOptions = computed(() => ({
   legend: { show: false },
   xaxis: {
     type: 'datetime',
-    tickAmount: responseTimePeriod.value === '24h' ? 6 : responseTimePeriod.value === '7d' ? 7 : 6,
+    tickAmount: responseTimePeriod.value === '24h' ? 6 : responseTimePeriod.value === '7d' ? 7 : 10,
     labels: {
       style: {
         colors: '#98a4ae',
