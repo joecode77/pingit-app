@@ -2,13 +2,11 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useMonitorsStore } from '@/stores/monitors.js'
 import { useAuthStore } from '@/stores/auth.js'
-import { useRouter } from 'vue-router'
 import VueApexCharts from 'vue3-apexcharts'
 import { monitorsApi } from '@/api/index.js'
 
 const monitorsStore = useMonitorsStore()
 const auth = useAuthStore()
-const router = useRouter()
 
 const dashboard = computed(() => monitorsStore.dashboard)
 const monitors = computed(() => monitorsStore.monitors)
@@ -328,8 +326,8 @@ const responseTimeOptions = computed(() => ({
                 <span class="welcome-stat-value">{{ dashboard?.down ?? 0 }}</span>
                 <span class="welcome-stat-label">Sites Down</span>
               </div>
-              <div class="welcome-stat-divider welcome-stat-divider--last" />
-              <div class="welcome-stat welcome-stat--last">
+              <div class="welcome-stat-divider" />
+              <div class="welcome-stat">
                 <span class="welcome-stat-value">{{ dashboard?.degraded ?? 0 }}</span>
                 <span class="welcome-stat-label">Degraded</span>
               </div>
@@ -599,108 +597,6 @@ const responseTimeOptions = computed(() => ({
   font-size: 13px;
 }
 
-/* ── Incidents ────────────────────────── */
-.incident-badge {
-  font-size: 11px;
-  font-weight: 700;
-  color: #fa5a7d;
-  background: #fff0f3;
-  padding: 4px 10px;
-  border-radius: 20px;
-}
-
-.incidents-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.incident-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 0;
-  border-bottom: 1px solid #f5f7fa;
-  cursor: pointer;
-  transition: background 0.15s;
-  border-radius: 8px;
-}
-
-.incident-row:last-child {
-  border-bottom: none;
-}
-
-.incident-row:hover {
-  background: #fff8f9;
-}
-
-.incident-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #fa5a7d;
-  flex-shrink: 0;
-  animation: pulse-red 1.5s infinite;
-}
-
-@keyframes pulse-red {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.6;
-    transform: scale(0.85);
-  }
-}
-
-.incident-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.incident-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: #1f2a3d;
-  margin: 0 0 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.incident-url {
-  font-size: 11px;
-  color: #98a4ae;
-  margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.incident-meta {
-  text-align: right;
-  flex-shrink: 0;
-}
-
-.incident-ongoing {
-  display: inline-block;
-  font-size: 11px;
-  font-weight: 700;
-  color: #fa5a7d;
-  background: #fff0f3;
-  padding: 2px 8px;
-  border-radius: 20px;
-  margin-bottom: 4px;
-}
-
-.incident-checked {
-  font-size: 11px;
-  color: #98a4ae;
-  margin: 0;
-}
-
 /* ── Loading skeleton ─────────────────── */
 .loading-state {
   display: grid;
@@ -768,9 +664,6 @@ const responseTimeOptions = computed(() => ({
   .grid-charts {
     grid-template-columns: 1fr;
   }
-  .grid-ssl-incidents {
-    grid-template-columns: 1fr;
-  }
   .uptime-card {
     display: none;
   }
@@ -807,9 +700,6 @@ const responseTimeOptions = computed(() => ({
   .grid-charts {
     grid-template-columns: 1fr;
   }
-  .grid-ssl-incidents {
-    grid-template-columns: 1fr;
-  }
   .uptime-card {
     display: none;
   }
@@ -820,34 +710,9 @@ const responseTimeOptions = computed(() => ({
   .welcome-card {
     padding: 20px;
   }
-
-  .monitors-table th,
-  .monitors-table td {
-    padding: 10px 8px;
-    font-size: 12px;
-  }
-
-  .monitor-name {
-    max-width: 140px;
-  }
-  .monitor-url {
-    max-width: 140px;
-  }
-
-  .incident-meta {
-    display: none;
-  }
 }
 
 /* Last stat orphaned on its own line — hide preceding divider, add spacing */
-@media (max-width: 460px) {
-  .welcome-stat-divider--last {
-    display: none;
-  }
-  .welcome-stat--last {
-    margin-top: 16px;
-  }
-}
 </style>
 
 <style>
