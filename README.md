@@ -15,7 +15,7 @@ The frontend application for [Pingit](https://www.pingit.live) — a full-stack 
 - Email: `demo@pingit.live`
 - Password: `password`
 
-> **Note:** The demo account is pre-loaded with seeded monitors using fictional URLs, so they will appear as `down`. To see the system monitoring real sites, register a new account and add your own URLs.
+> **Note:** The demo account is pre-loaded with real, well-known sites (Google, GitHub, Cloudflare, and others) so you can immediately explore live uptime data, response time charts, and incident history. To monitor your own sites, register a new account and add your own URLs.
 
 ---
 
