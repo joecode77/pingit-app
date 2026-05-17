@@ -47,6 +47,8 @@ const donutOptions = computed(() => ({
     fontFamily: 'Plus Jakarta Sans, sans-serif',
     toolbar: { show: false },
     animations: { enabled: true, speed: 600 },
+    redrawOnWindowResize: true,
+    redrawOnParentResize: true,
   },
   labels: ['Up', 'Down', 'Degraded', 'Paused'],
   colors: ['rgb(93, 135, 255)', '#fa5a7d', '#ff9f43', 'rgb(236, 242, 255)'],
@@ -115,6 +117,8 @@ const uptimeOptions = computed(() => ({
     fontFamily: 'Plus Jakarta Sans, sans-serif',
     toolbar: { show: false },
     animations: { enabled: true, speed: 800 },
+    redrawOnWindowResize: true,
+    redrawOnParentResize: true,
   },
   plotOptions: {
     radialBar: {
@@ -258,6 +262,8 @@ const responseTimeOptions = computed(() => ({
     toolbar: { show: false },
     animations: { enabled: true, speed: 600 },
     zoom: { enabled: false },
+    redrawOnWindowResize: true,
+    redrawOnParentResize: true,
   },
   stroke: {
     curve: 'smooth',
