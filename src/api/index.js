@@ -60,6 +60,7 @@ export const monitorsApi = {
   incidents: (id) => api.get(`/api/monitors/${id}/incidents`),
   responseTimes: (id, period) =>
     api.get(`/api/monitors/${id}/response-times`, { params: { period } }),
+  dailyStats: (id, days = 30) => api.get(`/api/monitors/${id}/daily-stats`, { params: { days } }),
 }
 
 // ─────────────────────────────────────────────
