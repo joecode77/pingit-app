@@ -186,13 +186,26 @@ async function fetchResponseTimes() {
     .filter((m) => m.status !== 'pending' && m.last_checked_at)
     .slice(0, 8)
 
+  // Fetch enough records to cover the period
+  // 5min interval = 288/day, 10min = 144/day — use 400 for 24h, 100 max per_page so paginate
+  const perPage =
+    responseTimePeriod.value === '24h' ? 100 : responseTimePeriod.value === '7d' ? 100 : 100
+
   const allChecks = []
   await Promise.all(
     activeMonitors.map(async (m) => {
       try {
-        const res = await monitorsApi.history(m.id, { per_page: 200 })
-        const checks = res.data.data.filter((c) => c.is_up && c.response_time_ms)
-        allChecks.push(...checks)
+        // Fetch up to 3 pages to get enough coverage
+        const pages =
+          responseTimePeriod.value === '24h' ? 1 : responseTimePeriod.value === '7d' ? 3 : 7
+
+        for (let page = 1; page <= pages; page++) {
+          const res = await monitorsApi.history(m.id, { per_page: perPage, page })
+          const checks = res.data.data.filter((c) => c.is_up && c.response_time_ms)
+          allChecks.push(...checks)
+          // Stop early if we got fewer results than requested (last page)
+          if (res.data.data.length < perPage) break
+        }
       } catch {
         // skip
       }
@@ -265,6 +278,7 @@ const responseTimeOptions = computed(() => ({
   legend: { show: false },
   xaxis: {
     type: 'datetime',
+    tickAmount: responseTimePeriod.value === '24h' ? 6 : responseTimePeriod.value === '7d' ? 7 : 6,
     labels: {
       style: {
         colors: '#98a4ae',
@@ -272,6 +286,16 @@ const responseTimeOptions = computed(() => ({
         fontFamily: 'Plus Jakarta Sans, sans-serif',
       },
       datetimeUTC: false,
+      formatter: (val) => {
+        const date = new Date(val)
+        if (responseTimePeriod.value === '24h') {
+          return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }
+        if (responseTimePeriod.value === '7d') {
+          return date.toLocaleDateString([], { weekday: 'short' })
+        }
+        return date.toLocaleDateString([], { month: 'short', day: 'numeric' })
+      },
     },
     axisBorder: { show: false },
     axisTicks: { show: false },
@@ -411,6 +435,8 @@ const responseTimeOptions = computed(() => ({
 <style scoped>
 .dashboard {
   width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 /* ── Cards ────────────────────────────── */
@@ -461,7 +487,7 @@ const responseTimeOptions = computed(() => ({
 /* ── Welcome card ─────────────────────── */
 .grid-welcome {
   display: grid;
-  grid-template-columns: 1fr 280px;
+  grid-template-columns: minmax(0, 1fr) 280px;
   gap: 20px;
 }
 
@@ -489,7 +515,7 @@ const responseTimeOptions = computed(() => ({
   font-size: 18px;
   font-weight: 600;
   color: rgb(0, 0, 0);
-  margin: 0 0 40px 0;
+  margin: 0 0 52px 0;
   line-height: 25.6px;
   letter-spacing: normal;
 }
@@ -557,8 +583,13 @@ const responseTimeOptions = computed(() => ({
 /* ── Charts row ───────────────────────── */
 .grid-charts {
   display: grid;
-  grid-template-columns: 1fr 1.4fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
   gap: 20px;
+}
+
+.grid-charts > .card {
+  min-width: 0;
+  overflow: hidden;
 }
 
 /* ── Period dropdown ──────────────────── */
@@ -629,19 +660,19 @@ const responseTimeOptions = computed(() => ({
 
 @media (min-width: 1280px) {
   .grid-charts {
-    grid-template-columns: 1fr 1.4fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
   }
   .grid-welcome {
-    grid-template-columns: 1fr 280px;
+    grid-template-columns: minmax(0, 1fr) 280px;
   }
 }
 
 @media (max-width: 1279px) and (min-width: 900px) {
   .grid-welcome {
-    grid-template-columns: 1fr 240px;
+    grid-template-columns: minmax(0, 1fr) 240px;
   }
   .grid-charts {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 }
 
@@ -663,9 +694,6 @@ const responseTimeOptions = computed(() => ({
   }
   .grid-charts {
     grid-template-columns: 1fr;
-  }
-  .uptime-card {
-    display: none;
   }
 }
 
@@ -699,9 +727,6 @@ const responseTimeOptions = computed(() => ({
 
   .grid-charts {
     grid-template-columns: 1fr;
-  }
-  .uptime-card {
-    display: none;
   }
 
   .card {
