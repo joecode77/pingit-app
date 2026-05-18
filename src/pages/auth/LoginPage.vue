@@ -106,7 +106,7 @@ async function handleLogin() {
           </div>
 
           <!-- Password -->
-          <div class="mb-4">
+          <div class="mb-6">
             <label class="block text-sm font-semibold mb-2" style="color: #2a3547">
               Password
             </label>
@@ -156,19 +156,6 @@ async function handleLogin() {
             <p v-if="errors.password" class="mt-1 text-xs" style="color: #fa5a7d">
               {{ errors.password[0] }}
             </p>
-          </div>
-
-          <!-- Remember + Forgot -->
-          <div class="flex items-center justify-between mb-6">
-            <label class="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                v-model="form.remember"
-                type="checkbox"
-                style="accent-color: #5d87ff; width: 16px; height: 16px"
-              />
-              <span class="text-sm" style="color: rgba(0, 0, 0, 0.87)">Remember this Device</span>
-            </label>
-            <a href="#" class="text-sm font-medium" style="color: #5d87ff"> Forgot Password? </a>
           </div>
 
           <!-- Submit -->
